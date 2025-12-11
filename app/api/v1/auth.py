@@ -3,13 +3,9 @@ from pydantic import BaseModel, EmailStr
 from datetime import datetime, timedelta
 import bcrypt
 from jose import jwt
+from app.core.config import SECRET_KEY, ALGORITHM, EXPIRE_MINUTES
 
 router = APIRouter()
-
-# Config
-SECRET_KEY = "mysecretekeyhere"
-ALGORITHM = "HS256"
-EXPIRE_MINUTES = 30
 
 # Fake in-memory DB
 fake_users_db = {}
