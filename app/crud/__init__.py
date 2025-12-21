@@ -10,6 +10,7 @@ from .crud_prompt import (
     get_prompt_by_id,
     update_prompt,
     delete_prompt,
+    search_user_prompts,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "get_prompt_by_id",
     "update_prompt",
     "delete_prompt",
+    "search_user_prompts",
 ]

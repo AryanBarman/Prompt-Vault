@@ -12,7 +12,7 @@ class Prompt(Base):
     content = Column(Text, nullable=False)
     description = Column(Text, nullable=True)
 
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
     user = relationship("User", back_populates="prompts")
 
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -10,6 +10,7 @@ from app.crud import (
     get_prompt_by_id,
     update_prompt,
     delete_prompt,
+    search_user_prompts
 )
 
 router = APIRouter()
@@ -39,7 +40,7 @@ def get_all_prompts(
     prompts = get_prompts_by_user(db, current_user.id, skip, limit)
     return prompts
 
-@router.get("/{prompt_id}", response_model=PromptOut)
+@router.get("/{prompt_id: int}", response_model=PromptOut)
 def get_prompt(
     prompt_id: int,
     db: Session = Depends(get_db),
@@ -64,7 +65,7 @@ def get_prompt(
     
     return prompt
 
-@router.put("/{prompt_id}", response_model=PromptOut)
+@router.put("/{prompt_id: int}", response_model=PromptOut)
 def update_existing_prompt(
     prompt_id: int,
     prompt_update: PromptUpdate,
@@ -93,7 +94,7 @@ def update_existing_prompt(
     updated_prompt = update_prompt(db, prompt_id, prompt_update)
     return updated_prompt
 
-@router.delete("/{prompt_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{prompt_id: int}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_existing_prompt(
     prompt_id: int,
     db: Session = Depends(get_db),
@@ -120,3 +121,20 @@ def delete_existing_prompt(
     # Delete prompt
     delete_prompt(db, prompt_id)
     return None
+
+
+@router.get("/search", response_model=List[PromptOut])
+def search_prompts(
+    query: str,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Search prompts by title or description for the authenticated user
+    """
+    print(f"query: {query}")
+    prompts = search_user_prompts(db, current_user.id, query, skip, limit)
+    return prompts
+

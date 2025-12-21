@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from app.models.prompt import Prompt
 from app.schemas.prompt import PromptCreate, PromptUpdate
 from typing import List
@@ -47,3 +48,7 @@ def delete_prompt(db: Session, prompt_id: int) -> bool:
     db.delete(db_prompt)
     db.commit()
     return True
+
+def search_user_prompts(db: Session, user_id: int, query: str, skip: int = 0, limit: int = 100) -> List[Prompt]:
+    """Search prompts by title or description for a specific user"""
+    return db.query(Prompt).filter(Prompt.user_id == user_id, or_(Prompt.title.contains(query), Prompt.description.contains(query))).offset(skip).limit(limit).all()
