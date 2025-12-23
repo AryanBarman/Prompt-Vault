@@ -17,3 +17,9 @@ class Prompt(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    versions = relationship(
+        "PromptVersion",
+        back_populates="prompt",
+        cascade="all, delete-orphan"
+    )
