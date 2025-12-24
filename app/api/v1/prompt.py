@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.core.deps import get_db, get_current_user
 from app.models.user import User
+from app.core.domain_error import PromptNotFound
 from app.schemas import PromptCreate, PromptUpdate, PromptOut, PromptVersionOut
 from app.crud import (
     create_prompt,
@@ -71,17 +72,11 @@ def get_prompt(
     """
     prompt = get_prompt_by_id(db, prompt_id)
     if not prompt:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Prompt not found"
-        )
+        raise PromptNotFound(prompt_id)
     
     # Check if prompt belongs to current user
     if prompt.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this prompt"
-        )
+        raise UnauthorizedActionError("access this prompt")
     
     return prompt
 
@@ -98,17 +93,11 @@ def update_existing_prompt(
     # Check if prompt exists
     existing_prompt = get_prompt_by_id(db, prompt_id)
     if not existing_prompt:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Prompt not found"
-        )
+        raise PromptNotFound(prompt_id)
     
     # Check if prompt belongs to current user
     if existing_prompt.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this prompt"
-        )
+        raise UnauthorizedActionError("update this prompt")
     
     # Update prompt (CRUD handles version creation)
     updated_prompt = update_prompt(db, prompt_id, prompt_update, current_user.id)
@@ -126,17 +115,11 @@ def delete_existing_prompt(
     # Check if prompt exists
     existing_prompt = get_prompt_by_id(db, prompt_id)
     if not existing_prompt:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Prompt not found"
-        )
+        raise PromptNotFound(prompt_id)
     
     # Check if prompt belongs to current user
     if existing_prompt.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this prompt"
-        )
+        raise UnauthorizedActionError("delete this prompt")
     
     # Delete prompt
     delete_prompt(db, prompt_id)
@@ -154,16 +137,10 @@ def get_versions(
     # Check if prompt exists and belongs to current user
     prompt = get_prompt_by_id(db, prompt_id)
     if not prompt:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Prompt not found"
-        )
+        raise PromptNotFound(prompt_id)
     
     if prompt.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this prompt's versions"
-        )
+        raise UnauthorizedActionError("access this prompt's versions")
     
     # Get versions using CRUD function
     versions = get_prompt_versions(db, prompt_id)
@@ -182,25 +159,16 @@ def rollback_to_version(
     # Check if prompt exists and belongs to current user
     prompt = get_prompt_by_id(db, prompt_id)
     if not prompt:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Prompt not found"
-        )
+        raise PromptNotFound(prompt_id)
     
     if prompt.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to rollback this prompt"
-        )
+        raise UnauthorizedActionError("rollback this prompt")
     
     # Rollback using CRUD function
     rolled_back_prompt = rollback_prompt_to_version(db, prompt_id, version_number)
     
     if not rolled_back_prompt:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Version not found"
-        )
+        raise VersionNotFound(version_number)
     
     return rolled_back_prompt
 
@@ -216,16 +184,10 @@ def get_version_count(
     # Check if prompt exists and belongs to current user
     prompt = get_prompt_by_id(db, prompt_id)
     if not prompt:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Prompt not found"
-        )
+        raise PromptNotFound(prompt_id)
     
     if prompt.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this prompt"
-        )
+        raise UnauthorizedActionError("access this prompt")
     
     # Get count using CRUD function
     count = get_prompt_version_count(db, prompt_id)

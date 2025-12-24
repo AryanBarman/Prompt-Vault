@@ -2,14 +2,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import router as api_v1_router
 from app.core.database import Base, engine
-# Import models so SQLAlchemy knows about them
 from app.models import User, Prompt, PromptVersion
+from app.core.logging_config import logger
+from app.core.error_handler import global_exception_handler, domain_error_handler
+from app.core.domain_error import DomainError
 
 app = FastAPI(
     title="FastAPI Auth & Prompts",
     description="Authentication and Prompt Management API with Version Control",
     version="1.0.0"
 )
+
+app.add_exception_handler(Exception, global_exception_handler)
+app.add_exception_handler(DomainError, domain_error_handler)
 
 # CORS middleware
 app.add_middleware(
@@ -28,6 +33,7 @@ Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def root():
+    logger.info("Root endpoint accessed")
     return {
         "message": "Welcome to FastAPI Auth & Prompts API",
         "docs": "/docs",
@@ -37,3 +43,11 @@ def root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+@app.on_event("startup")
+async def startup():
+    logger.info("Application startup")
+
+@app.on_event("shutdown")
+async def shutdown():
+    logger.info("Application shutdown")
