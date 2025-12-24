@@ -1,2 +1,5 @@
-from app.models.user import User
-from app.models.prompt import Prompt
+from .user import User
+from .prompt import Prompt
+from .prompt_version import PromptVersion
+
+__all__ = ["User", "Prompt", "PromptVersion"]

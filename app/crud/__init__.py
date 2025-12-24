@@ -11,6 +11,9 @@ from .crud_prompt import (
     update_prompt,
     delete_prompt,
     search_user_prompts,
+    get_prompt_versions,
+    rollback_prompt_to_version,
+    get_prompt_version_count,
 )
 
 __all__ = [
@@ -24,4 +27,7 @@ __all__ = [
     "update_prompt",
     "delete_prompt",
     "search_user_prompts",
+    "get_prompt_versions",
+    "rollback_prompt_to_version",
+    "get_prompt_version_count",
 ]

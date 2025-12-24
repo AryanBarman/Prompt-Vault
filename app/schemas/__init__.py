@@ -1,5 +1,6 @@
 from .user import UserBase, UserCreate, UserOut, UserLogin, Token
 from .prompt import PromptCreate, PromptUpdate, PromptOut
+from .prompt_version import PromptVersionCreate, PromptVersionOut
 
 __all__ = [
     "UserBase",
@@ -10,4 +11,6 @@ __all__ = [
     "PromptCreate",
     "PromptUpdate",
     "PromptOut",
+    "PromptVersionCreate",
+    "PromptVersionOut",
 ]

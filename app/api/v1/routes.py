@@ -4,6 +4,7 @@ from app.api.v1.prompt import router as prompt_router
 from app.core.deps import get_current_user
 from app.models.user import User
 from app.schemas import UserOut
+from app.core.domain_error import PromptNotFound
 
 router = APIRouter()
 
