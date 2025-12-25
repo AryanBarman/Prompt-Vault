@@ -6,6 +6,7 @@ from app.models import User, Prompt, PromptVersion
 from app.core.logging_config import logger
 from app.core.error_handler import global_exception_handler, domain_error_handler
 from app.core.domain_error import DomainError
+from app.core.request_logging import RequestLoggingMiddleware
 
 app = FastAPI(
     title="FastAPI Auth & Prompts",
@@ -15,6 +16,7 @@ app = FastAPI(
 
 app.add_exception_handler(Exception, global_exception_handler)
 app.add_exception_handler(DomainError, domain_error_handler)
+app.add_middleware(RequestLoggingMiddleware)
 
 # CORS middleware
 app.add_middleware(
