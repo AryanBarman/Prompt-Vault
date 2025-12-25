@@ -4,10 +4,13 @@ from starlette.requests import Request
 from jose import jwt, JWTError
 from app.core.logging_config import logger
 from app.core.config import SECRET_KEY, ALGORITHM
+from app.core.metrics import metrics
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        metrics.record_request()
+
         start_time = time.time()
         
         # Extract user from token (optional - won't fail if no auth)
@@ -19,6 +22,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         duration = (time.time() - start_time) * 1000  # ms
+        metrics.record_response_time(duration)
         status = response.status_code
         logger.info(f"← {request.method} {request.url.path} [{status}] in {duration:.2f}ms")
 

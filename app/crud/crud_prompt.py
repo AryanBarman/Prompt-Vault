@@ -17,6 +17,17 @@ def create_prompt(db: Session, prompt: PromptCreate, user_id: int) -> Prompt:
     db.add(db_prompt)
     db.commit()
     db.refresh(db_prompt)
+
+    # Create version entry
+    version = PromptVersion(
+        prompt_id=db_prompt.id,
+        version_number=1,
+        content=prompt.content,
+        user_id=user_id
+    )
+    db.add(version)
+    db.commit()
+    db.refresh(version)
     return db_prompt
 
 def get_prompts_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[Prompt]:
