@@ -43,7 +43,7 @@ app.add_middleware(
 app.include_router(api_v1_router, prefix="/api/v1")
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine) # later will remove this and use alembic migrations 
 
 @app.get("/")
 def root():
