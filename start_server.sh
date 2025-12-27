@@ -1,7 +1,7 @@
 #!/bin/bash
 
-WORKERS = ${WORKERS:-4}
-BIND= ${BIND:-0.0.0.0:8000}
+WORKERS=${WORKERS:-4}
+BIND=${BIND:-0.0.0.0:8000}
 
 echo "Starting Gunicorn with $WORKERS workers and binding to $BIND"
 
