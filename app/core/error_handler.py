@@ -2,10 +2,12 @@ from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from app.core.logging_config import logger
 from app.core.domain_error import DomainError
+from app.core.metrics import metrics
 from app.core.security import get_current_user_email, get_token
 
 async def global_exception_handler(request: Request, exc: Exception):
     user = get_current_user_email(get_token(request))
+    metrics.record_internal_error()
     logger.error(
     f"InternalServerError at {request.method} {request.url.path}{user} "
     f"- {exc.__class__.__name__}: {exc}"
@@ -21,6 +23,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 async def domain_error_handler(request: Request, exc: DomainError):
     user = get_current_user_email(get_token(request))
+    metrics.record_domain_error()
     logger.warning(f"{exc.__class__.__name__} at {request.method}{request.url.path} by {user} -{exc.message}")
 
     return JSONResponse(
