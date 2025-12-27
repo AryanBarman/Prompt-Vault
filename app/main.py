@@ -7,6 +7,7 @@ from app.core.logging_config import logger
 from app.core.error_handler import global_exception_handler, domain_error_handler
 from app.core.domain_error import DomainError
 from app.core.request_logging import RequestLoggingMiddleware
+from app.core.config import IS_PROD
 
 app = FastAPI(
     title="FastAPI Auth & Prompts",
@@ -18,10 +19,21 @@ app.add_exception_handler(Exception, global_exception_handler)
 app.add_exception_handler(DomainError, domain_error_handler)
 app.add_middleware(RequestLoggingMiddleware)
 
+if IS_PROD:
+    origins = [
+        "https://your-frontend-domain.com",
+        # add more if needed
+    ]
+else:
+    origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

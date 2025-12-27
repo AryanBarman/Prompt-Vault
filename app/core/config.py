@@ -1,6 +1,9 @@
 import os
 from dotenv import load_dotenv
 
+ENV = os.getenv("ENV", "development")
+IS_PROD = ENV == "production"
+
 # Load environment variables from .env file
 load_dotenv()
 
