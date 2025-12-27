@@ -5,15 +5,18 @@ from app.schemas.prompt import PromptCreate, PromptUpdate
 from typing import List
 from app.models.prompt_version import PromptVersion
 from datetime import datetime
+from app.services.prompt_ai_service import PromptAIService
 
 def create_prompt(db: Session, prompt: PromptCreate, user_id: int) -> Prompt:
     """Create a new prompt"""
+    ai = PromptAIService()
     db_prompt = Prompt(
         title=prompt.title,
         content=prompt.content,
         description=prompt.description,
         user_id=user_id
     )
+    db_prompt.embedding = ai.embed_prompt(prompt.content)
     db.add(db_prompt)
     db.commit()
     db.refresh(db_prompt)
@@ -40,6 +43,7 @@ def get_prompt_by_id(db: Session, prompt_id: int) -> Prompt | None:
 
 def update_prompt(db: Session, prompt_id: int, prompt_update: PromptUpdate, user_id: int) -> Prompt | None:
     """Update a prompt and create a version entry"""
+    ai = PromptAIService()
     db_prompt = get_prompt_by_id(db, prompt_id)
     if not db_prompt:
         return None
@@ -63,6 +67,7 @@ def update_prompt(db: Session, prompt_id: int, prompt_update: PromptUpdate, user
             content=prompt_update.content,
             user_id=user_id
         )
+        version.embedding = ai.embed_prompt(prompt_update.content)
         db.add(version)
     
     # Update prompt fields

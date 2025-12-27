@@ -5,6 +5,9 @@ from app.core.deps import get_db, get_current_user
 from app.models.user import User
 from app.core.domain_error import PromptNotFound
 from app.schemas import PromptCreate, PromptUpdate, PromptOut, PromptVersionOut
+from app.services.semantic_search_service import SemanticSearchService
+from app.services.prompt_ai_service import PromptAIService
+from app.models.prompt import Prompt
 from app.crud import (
     create_prompt,
     get_prompts_by_user,
@@ -192,3 +195,33 @@ def get_version_count(
     # Get count using CRUD function
     count = get_prompt_version_count(db, prompt_id)
     return {"total_versions": count}
+
+@router.get("/search/semantic")
+def semantic_search(q:str, db: Session = Depends(get_db)):
+    service = SemanticSearchService(db)
+    results = service.search_prompts(q)
+
+    return [
+        {
+            "id": p.id,
+            "title": p.title,
+            "content": p.content,
+        }
+        for p in results
+    ]
+
+@router.get("/{prompt_id}/ai/suggest-version")
+def suggest_prompt_version(prompt_id: int, db: Session = Depends(get_db)):
+    prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
+
+    if not prompt:
+        raise PromptNotFound(prompt_id)
+
+    service = PromptAIService()
+    suggestion = service.suggest_next_version(prompt.content)
+
+    return {
+        "prompt_id": prompt_id,
+        "title": prompt.title,
+        "ai_suggestion": suggestion
+    }
