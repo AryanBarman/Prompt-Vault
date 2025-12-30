@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Body
 from sqlalchemy.orm import Session
 from typing import List
 from app.core.deps import get_db, get_current_user
 from app.models.user import User
 from app.core.domain_error import PromptNotFound
-from app.schemas import PromptCreate, PromptUpdate, PromptOut, PromptVersionOut
+from app.schemas import PromptCreate, PromptUpdate, PromptOut, PromptVersionOut, PromptAIRequest
 from app.services.semantic_search_service import SemanticSearchService
 from app.services.prompt_ai_service import PromptAIService
 from app.models.prompt import Prompt
@@ -225,3 +225,45 @@ def suggest_prompt_version(prompt_id: int, db: Session = Depends(get_db)):
         "title": prompt.title,
         "ai_suggestion": suggestion
     }
+
+@router.post("/{prompt_id}/ai")
+def run_prompt_ai_action(
+    prompt_id: int,
+    payload: PromptAIRequest = Body(...),
+    db: Session = Depends(get_db),
+):
+    prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
+
+    if not prompt: 
+        raise PromptNotFound(prompt_id)
+
+    service = PromptAIService()
+    
+    mode = payload.mode.lower()
+    
+    if mode == "improve":
+        result = service.improve_prompt(prompt.content)
+    
+    elif mode == "summarize":
+        result = service.summarize_prompt(prompt.content)
+    
+    elif mode == "rewrite":
+        result = service.generate_variations(prompt.content, 1)
+    
+    else:
+        raise ValueError("Invalid mode")
+    
+    return {
+        "prompt_id": prompt_id,
+        "title": prompt.title,
+        "mode": mode,
+        "result": result,
+        "meta": {
+            "source": "PromptAIService",
+            "model": "groq"
+        }
+    }
+    
+    
+    
+    

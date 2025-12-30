@@ -14,26 +14,67 @@ class PromptAIService:
             return self.ai.improve_prompt(prompt_text)
         except Exception as e:
             logger.error(f"Failed to improve prompt: {e}")
-            return text # fallback to original prompt
+            return prompt_text # fallback to original prompt
 
     def generate_variations(self, text: str, count: int = 3):
         """
         Create multiple alternate rewrites of the same prompt.
+        Returns a list of strings.
         """
-        prompt = (
-            f"Generate {count} different variations of the following prompt. "
-            "They should be creative, diverse, and effective.\n\n"
-            f"Prompt:\n{text}"
-        )
+
+        system_prompt = f"""
+        You are an expert prompt engineer.
+        Return ONLY VALID JSON. No explanations.
+
+        Format exactly:
+        {{
+        "variations": [
+            "variation 1",
+            "variation 2",
+            "variation 3"
+        ]
+        }}
+
+        Rules:
+        - Generate {count} different rewrites of the prompt
+        - Each variation MUST be clear and useful
+        - Do NOT add commentary
+        - Do NOT say 'Here are variations'
+        """
+
+        full_prompt = f"{system_prompt}\n\nUser Prompt:\n{text}"
 
         try:
-            raw = self.ai.generate_completion(prompt)
-            # Split at new lines or list-like formatting
-            variations = [v.strip("-• ").strip() for v in raw.split("\n") if v.strip()]
+            raw = self.ai.generate_completion(full_prompt)
+
+            if not raw or not raw.strip():
+                raise ValueError("AI returned empty output")
+
+            raw = raw.strip()
+
+            # If wrapped in ```json ... ``` remove formatting
+            if raw.startswith("```"):
+                raw = raw.strip("`").strip()
+                if raw.lower().startswith("json"):
+                    raw = raw[4:].strip()
+
+            data = json.loads(raw)
+
+            variations = data.get("variations", [])
+            if not isinstance(variations, list):
+                raise ValueError("variations is not a list")
+
+            # Guarantee count
+            if len(variations) < count:
+                while len(variations) < count:
+                    variations.append(text)
+
             return variations[:count]
+
         except Exception as e:
             logger.error(f"PromptAIService.generate_variations error: {e}")
             return [text] * count
+
 
     def summarize_prompt(self, text: str) -> str:
         """

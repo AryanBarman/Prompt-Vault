@@ -13,3 +13,7 @@ class PromptVersionOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class PromptAIRequest(BaseModel):
+    mode: str
+    extra_context: str | None = None
