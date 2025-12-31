@@ -248,7 +248,8 @@ def run_prompt_ai_action(
         result = service.summarize_prompt(prompt.content)
     
     elif mode == "rewrite":
-        result = service.generate_variations(prompt.content, 1)
+        variations = service.generate_variations(prompt.content, count=3)
+        result = variations[0] if variations and len(variations) > 0 else prompt.content
     
     else:
         raise ValueError("Invalid mode")
