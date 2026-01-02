@@ -139,3 +139,28 @@ def get_prompt_version_count(db: Session, prompt_id: int) -> int:
         .filter(PromptVersion.prompt_id == prompt_id)
         .count()
     )
+
+def get_total_prompts(db: Session, user_id: int) -> int:
+    """Get the total number of prompts for a user"""
+    return db.query(Prompt).filter(Prompt.user_id == user_id).count()
+
+def get_recent_prompts(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[Prompt]:
+    """Get the most recent prompts for a user"""
+    recent_prompts = (
+    db.query(Prompt)
+    .filter(Prompt.user_id == user_id)
+    .order_by(Prompt.updated_at.desc())
+    .limit(5)
+    .all()
+    )
+    
+    recent = [
+        {
+            "id": p.id,
+            "title": p.title,
+            "updated_at": p.updated_at
+        }
+        for p in recent_prompts
+    ]
+    return recent
+
