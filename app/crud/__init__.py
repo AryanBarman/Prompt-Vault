@@ -14,6 +14,8 @@ from .crud_prompt import (
     get_prompt_versions,
     rollback_prompt_to_version,
     get_prompt_version_count,
+    get_total_prompts,
+    get_recent_prompts,
 )
 
 __all__ = [
