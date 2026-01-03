@@ -21,7 +21,7 @@ app.add_middleware(RequestLoggingMiddleware)
 
 if IS_PROD:
     origins = [
-        "https://your-frontend-domain.com",
+        "https://prompt-storage-ui.vercel.app",
         # add more if needed
     ]
 else:
