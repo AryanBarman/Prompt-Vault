@@ -45,6 +45,17 @@ def get_all_prompts(
     Get all prompts for the authenticated user
     """
     prompts = get_prompts_by_user(db, current_user.id, skip, limit)
+    # need to send updated at as well with the response
+    prompts = [
+        {
+            "id": p.id,
+            "title": p.title,
+            "content": p.content,
+            "description": p.description,
+            "updated_at": p.updated_at
+        }
+        for p in prompts
+    ]
     return prompts
 
 @router.get("/search", response_model=List[PromptOut])

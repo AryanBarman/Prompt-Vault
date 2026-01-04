@@ -1,4 +1,5 @@
 from pydantic import BaseModel, field_validator
+from datetime import datetime
 
 class PromptCreate(BaseModel):
     title: str
@@ -31,7 +32,8 @@ class PromptOut(BaseModel):
     title: str
     content: str
     description: str | None
-    user_id: int
+    # user_id: int
+    updated_at: datetime
 
     class Config:
         from_attributes = True
