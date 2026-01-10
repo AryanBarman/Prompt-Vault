@@ -4,6 +4,8 @@ from jose import jwt, JWTError
 from datetime import datetime, timedelta
 import bcrypt
 from app.core.config import SECRET_KEY, ALGORITHM, EXPIRE_MINUTES
+import secrets
+import hashlib
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
 
@@ -48,3 +50,10 @@ def get_token(request):
     if auth_header and auth_header.startswith("Bearer "):
         return auth_header.split(" ")[1]
     return None
+
+def create_refresh_token():
+    return secrets.token_urlsafe(64)
+
+def hash_refresh_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+

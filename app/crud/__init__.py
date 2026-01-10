@@ -17,6 +17,13 @@ from .crud_prompt import (
     get_total_prompts,
     get_recent_prompts,
 )
+from .crud_session import (
+    create_session,
+    validate_and_refresh_session,
+    revoke_session,
+    revoke_session_by_token,
+    revoke_all_user_sessions,
+)
 
 __all__ = [
     "get_user_by_email",
