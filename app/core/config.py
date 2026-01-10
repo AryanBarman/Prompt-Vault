@@ -14,3 +14,6 @@ EXPIRE_MINUTES = int(os.getenv("EXPIRE_MINUTES", "30"))
 
 # Database Configuration
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+# redis Configuration
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
