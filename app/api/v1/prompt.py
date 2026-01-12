@@ -131,12 +131,12 @@ def delete_existing_prompt(
     if not existing_prompt:
         raise PromptNotFound(prompt_id)
     
-    # Check if prompt belongs to current user
+    # Check if prompt belongs to current user (redundant with RBAC but kept for clarity)
     if existing_prompt.user_id != current_user.id:
         raise UnauthorizedActionError("delete this prompt")
     
-    # Delete prompt
-    delete_prompt(db, prompt_id)
+    # Delete prompt (RBAC check happens in CRUD layer)
+    delete_prompt(db, prompt_id, current_user.id)
     return None
 
 @router.get("/{prompt_id}/versions", response_model=List[PromptVersionOut])
@@ -178,8 +178,8 @@ def rollback_to_version(
     if prompt.user_id != current_user.id:
         raise UnauthorizedActionError("rollback this prompt")
     
-    # Rollback using CRUD function
-    rolled_back_prompt = rollback_prompt_to_version(db, prompt_id, version_number)
+    # Rollback using CRUD function (RBAC check happens in CRUD layer)
+    rolled_back_prompt = rollback_prompt_to_version(db, prompt_id, version_number, current_user.id)
     
     if not rolled_back_prompt:
         raise VersionNotFound(version_number)

@@ -4,11 +4,13 @@ from app.models.prompt import Prompt
 from app.schemas.prompt import PromptCreate, PromptUpdate
 from typing import List
 from app.models.prompt_version import PromptVersion
+from app.models.prompt_permission import PromptPermission
 from datetime import datetime
 from app.services.prompt_ai_service import PromptAIService
+from app.services.rbac import require_role
 
 def create_prompt(db: Session, prompt: PromptCreate, user_id: int) -> Prompt:
-    """Create a new prompt"""
+    """Create a new prompt and set creator as owner"""
     ai = PromptAIService()
     db_prompt = Prompt(
         title=prompt.title,
@@ -29,8 +31,17 @@ def create_prompt(db: Session, prompt: PromptCreate, user_id: int) -> Prompt:
         user_id=user_id
     )
     db.add(version)
+    
+    # Create owner permission for creator
+    permission = PromptPermission(
+        prompt_id=db_prompt.id,
+        user_id=user_id,
+        role="owner"
+    )
+    db.add(permission)
+    
     db.commit()
-    db.refresh(version)
+    db.refresh(db_prompt)
     return db_prompt
 
 def get_prompts_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[Prompt]:
@@ -44,6 +55,7 @@ def get_prompt_by_id(db: Session, prompt_id: int) -> Prompt | None:
 def update_prompt(db: Session, prompt_id: int, prompt_update: PromptUpdate, user_id: int) -> Prompt | None:
     """Update a prompt and create a version entry"""
     ai = PromptAIService()
+    require_role(db, user_id, prompt_id, ["owner", "contributor"])
     db_prompt = get_prompt_by_id(db, prompt_id)
     if not db_prompt:
         return None
@@ -79,11 +91,14 @@ def update_prompt(db: Session, prompt_id: int, prompt_update: PromptUpdate, user
     db.refresh(db_prompt)
     return db_prompt
 
-def delete_prompt(db: Session, prompt_id: int) -> bool:
-    """Delete a prompt"""
+def delete_prompt(db: Session, prompt_id: int, user_id: int) -> bool:
+    """Delete a prompt (owner only)"""
     db_prompt = get_prompt_by_id(db, prompt_id)
     if not db_prompt:
         return False
+    
+    # Check permission AFTER confirming prompt exists
+    require_role(db, user_id, prompt_id, ["owner"])
     
     db.delete(db_prompt)
     db.commit()
@@ -103,8 +118,8 @@ def get_prompt_versions(db: Session, prompt_id: int) -> List:
         .all()
     )
 
-def rollback_prompt_to_version(db: Session, prompt_id: int, version_number: int) -> Prompt | None:
-    """Rollback a prompt to a specific version"""
+def rollback_prompt_to_version(db: Session, prompt_id: int, version_number: int, user_id: int) -> Prompt | None:
+    """Rollback a prompt to a specific version (owner/contributor only)"""
     # Get the prompt
     db_prompt = get_prompt_by_id(db, prompt_id)
     if not db_prompt:
@@ -122,6 +137,9 @@ def rollback_prompt_to_version(db: Session, prompt_id: int, version_number: int)
     
     if not version:
         return None
+    
+    # Check permission
+    require_role(db, user_id, prompt_id, ["owner", "contributor"])
     
     # Restore content from version
     db_prompt.content = version.content
