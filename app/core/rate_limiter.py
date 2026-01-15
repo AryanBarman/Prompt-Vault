@@ -7,6 +7,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        # Skip rate limiting if Redis is not available
+        if redis_client is None:
+            return await call_next(request)
 
         category, LIMIT, WINDOW = get_rate_limit_policy(request.url.path)
         key = get_rate_limit_key(request, category)

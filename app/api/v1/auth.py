@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, Request, Response
 from sqlalchemy.orm import Session as DBSession
 from app.core.deps import get_db, get_current_user
 from app.core.security import create_access_token, create_refresh_token
+from app.core.config import IS_PROD
 from app.schemas import UserCreate, UserOut, UserLogin, Token
 from app.models.user import User
 from app.crud import (
@@ -66,8 +67,8 @@ def login(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,  # Only send over HTTPS in production
-        samesite="strict",
+        secure=IS_PROD,  # Only send over HTTPS in production
+        samesite="strict" if IS_PROD else "lax",  # Lax for local development
         max_age=60*60*24*7  # 7 days
     )
     
@@ -119,8 +120,8 @@ def refresh_access_token(
         key="refresh_token",
         value=new_refresh_token,
         httponly=True,
-        secure=True,
-        samesite="strict",
+        secure=IS_PROD,  # Only send over HTTPS in production
+        samesite="strict" if IS_PROD else "lax",  # Lax for local development
         max_age=60*60*24*7  # 7 days
     )
     
@@ -151,8 +152,8 @@ def logout(
     response.delete_cookie(
         key="refresh_token",
         httponly=True,
-        secure=True,
-        samesite="strict"
+        secure=IS_PROD,
+        samesite="strict" if IS_PROD else "lax"
     )
     
     return {
